@@ -12,7 +12,7 @@ def setup(session, valid_user):
 
 
 def test_upload_task(test_client, valid_user):
-    utils.login(test_client, valid_user, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     access_token = str(os.environ.get("TEST_ACCESS_TOKEN"))
     headers = {"Authorization": "Bearer {}".format(access_token)}

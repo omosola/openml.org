@@ -24,7 +24,8 @@ def upload_task():
     Function to upload task
     """
     data = request.get_json()
-    tasktypes = openml.tasks.TaskTypeEnum
+
+    tasktypes = openml.tasks.TaskType
     t_type = data["task_type"]
     task_type = ""
     if t_type == "regression":
@@ -48,7 +49,7 @@ def upload_task():
     evaluation_measure = data["evaluation_measure"]
     task = openml.tasks.create_task(
         target_name=target_name,
-        task_type_id=task_type,
+        task_type=task_type,
         dataset_id=dataset_ids,
         evaluation_measure=evaluation_measure,
         estimation_procedure_id=estimation,

@@ -1,9 +1,9 @@
 import os
 
 import pytest
+import utils
 
 from server.user.models import User
-
 
 @pytest.fixture(scope="function", autouse=True)
 def setup(session, valid_user, unconfirmed_user):
@@ -11,24 +11,6 @@ def setup(session, valid_user, unconfirmed_user):
     session.add(unconfirmed_user)
     session.commit()
     yield
-
-@pytest.fixture(scope="function")
-def valid_user():
-    user = User(
-        email="abc@abc.com",
-        username="abc",
-        ip_address="1.2.3.4",
-        created_on="0000",
-        company="0000",
-        country="0000",
-        bio="No Bio",
-        session_hash="0000",
-        forgotten_password_code="1234",
-        active=1
-    )
-    user.set_password("abcabc")
-    
-    return user
 
 
 @pytest.fixture(scope="function")
@@ -49,13 +31,6 @@ def unconfirmed_user():
     user.set_password("ff")
     
     return user
-
-
-def login(test_client, email, password):
-    response = test_client.post(
-        "/login", json={"email": email, "password": password}, follow_redirects=True
-    )
-    return response
 
 
 def test_signup(test_client, session):
@@ -100,35 +75,35 @@ def test_confirm_user(test_client, unconfirmed_user):
 
 
 def test_login(test_client, valid_user):
-    response = login(test_client, valid_user.email, "abcabc")
+    response = utils.login(test_client, valid_user.email, "abcabc")
 
     assert response.json["access_token"]
     assert response.status_code == 200
 
 
 def test_login_wrong_password(test_client, valid_user):
-    response = login(test_client, valid_user.email, "wrongpassword")
+    response = utils.login(test_client, valid_user.email, "wrongpassword")
 
     assert response.json["msg"] == "WrongPassword"
     assert response.status_code == 200
 
 
 def test_login_user_not_existent(test_client):
-    response = login(test_client, "fake@user.com", "wrongpassword")
+    response = utils.login(test_client, "fake@user.com", "wrongpassword")
 
     assert response.json["msg"] == "WrongUsernameOrPassword"
     assert response.status_code == 200
 
 
 def test_login_user_not_confirmed(test_client, unconfirmed_user):
-    response = login(test_client, unconfirmed_user.email, "ff")
+    response = utils.login(test_client, unconfirmed_user.email, "ff")
 
     assert response.json["msg"] == "UserNotConfirmed"
     assert response.status_code == 200
 
 
 def test_get_profile(test_client, valid_user):
-    login(test_client, valid_user.email, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     access_token = str(os.environ.get("TEST_ACCESS_TOKEN"))
     headers = {"Authorization": "Bearer {}".format(access_token)}
@@ -151,7 +126,7 @@ def test_get_profile(test_client, valid_user):
 
 
 def test_profile_changes(test_client, session, valid_user):
-    login(test_client, valid_user.email, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     access_token = str(os.environ.get("TEST_ACCESS_TOKEN"))
     headers = {"Authorization": "Bearer {}".format(access_token)}
@@ -178,7 +153,7 @@ def test_profile_changes(test_client, session, valid_user):
 
 
 def test_api_key_get(test_client, valid_user):
-    login(test_client, valid_user.email, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     access_token = str(os.environ.get("TEST_ACCESS_TOKEN"))
     headers = {"Authorization": "Bearer {}".format(access_token)}
@@ -189,7 +164,7 @@ def test_api_key_get(test_client, valid_user):
 
 
 def test_api_key_post(test_client, session, valid_user):
-    login(test_client, valid_user.email, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     old_session_hash = valid_user.session_hash
 
@@ -207,7 +182,7 @@ def test_api_key_post(test_client, session, valid_user):
 
 
 def test_logout(test_client, valid_user):
-    login(test_client, valid_user.email, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     access_token = str(os.environ.get("TEST_ACCESS_TOKEN"))
     headers = {"Authorization": "Bearer {}".format(access_token)}
@@ -217,7 +192,7 @@ def test_logout(test_client, valid_user):
 
 
 def test_forgot_token(test_client, valid_user):
-    login(test_client, valid_user.email, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     url = "?token=" + str(valid_user.forgotten_password_code)
     response = test_client.post(
@@ -229,7 +204,7 @@ def test_forgot_token(test_client, valid_user):
 
 
 def test_forgot_token_invalid_token(test_client, valid_user):
-    login(test_client, valid_user.email, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     url = "?token=faketoken"
     response = test_client.post(
@@ -241,7 +216,7 @@ def test_forgot_token_invalid_token(test_client, valid_user):
 
 
 def test_reset_password(test_client, session, valid_user):
-    login(test_client, valid_user.email, "abcabc")
+    utils.login(test_client, valid_user.email, "abcabc")
 
     new_password = "newpassword"
 

@@ -5,6 +5,7 @@ import utils
 
 from server.user.models import User
 
+
 @pytest.fixture(scope="function", autouse=True)
 def setup(session, valid_user, unconfirmed_user):
     session.add(valid_user)

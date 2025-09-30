@@ -1,10 +1,19 @@
 import os
 
+import pytest
+import utils
 
-def test_upload_task(test_client):
-    response = test_client.post(
-        "/login", json={"email": "ff@ff.com", "password": "ff"}, follow_redirects=True
-    )
+
+@pytest.fixture(scope="function", autouse=True)
+def setup(session, valid_user):
+    session.add(valid_user)
+    session.commit()
+    yield
+
+
+def test_upload_task(test_client, valid_user):
+    utils.login(test_client, valid_user, "abcabc")
+
     access_token = str(os.environ.get("TEST_ACCESS_TOKEN"))
     headers = {"Authorization": "Bearer {}".format(access_token)}
     json_obj = {
@@ -15,4 +24,5 @@ def test_upload_task(test_client):
     }
     response = test_client.post("/upload-task", headers=headers, json=json_obj)
     print(response)
+
     assert response.status_code == 200

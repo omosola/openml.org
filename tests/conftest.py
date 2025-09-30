@@ -12,6 +12,9 @@ sys.path.insert(0, myPath + "/../")
 sys.path.append(os.path.join(os.path.dirname(__file__), 'helpers'))
 
 
+TEST_API_KEY = str(os.environ.get("TEST_API_KEY"))
+
+
 @pytest.fixture(scope="module")
 def test_client():
     flask_app = app
@@ -57,7 +60,9 @@ def valid_user():
         company="0000",
         country="0000",
         bio="No Bio",
-        session_hash="0000",
+        # user test api key during testing for each user,
+        # if available
+        session_hash=(TEST_API_KEY or "000"),
         forgotten_password_code="1234",
         active=1
     )

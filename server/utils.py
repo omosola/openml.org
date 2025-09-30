@@ -72,4 +72,4 @@ def current_user() -> User | None:
     if verify_jwt_in_request():
         jwt_identity = get_jwt_identity()
         with Session() as session:
-            return session.query(User).filter_by(email=jwt_identity).first()
+            return session.query(User).filter_by(username=jwt_identity).first()
